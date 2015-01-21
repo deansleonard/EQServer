@@ -1,0 +1,30 @@
+
+Copyright (c) 1998-2015, Capital Software Corp. All rights reserved.
+
+eQServer is distributed under a dual license: an open source license, and a commercial license. The open source license under which eQServer is distributed is the GNU Affero General Public License version 3 (AGPLv3).
+
+For the avoidance of doubt, this copy of the software is released under the version three (3) of the GNU Affero General Public License (AGPL). 
+
+eQServer is developed, licenced, and supported by Capital Software Corporation.
+
+enterprise-Q is a Registered Trademark of Capital Software Corporation.
+
+
+Open Source License:
+-------------------
+For many users, the AGPLv3 license suits their use of eQServer completely.  These users are not distributing proprietary modifications, additions to, or derivatives of eQServer and they do not require the legal protections of a commercial license.  Our open source license permits you to use eQServer at no charge under the condition that if you use the software in an application you redistribute, the complete source code for your application must be available and freely redistributable under reasonable conditions. 
+
+Please see the file named GNU_AGFL_LICENSE or go to http://www.gnu.org/licenses/agpl.html for details.
+
+
+Commercial License:
+------------------
+For other users, the AGPLv3 does not suit their use of eQServer.  These users wish to use eQServer in ways, products, markets or have other requirements that are not compatible with the AGPLv3.  To satisfy these demands, Capital Software, as the worldwide exclusive licensor of eQServer, offers commercial licensing of eQServer.  A commercial license to eQServer provides customers the legal means both to modify eQServer and to incorporate it into a product, without the obligation of providing the resulting code under the AGPLv3 license.  Furthermore, the proprietary version of the software includes legal assurances, warranties, and a wide array of technical and aftersale services provided by a full-time dedicated development team.  For more information about software licensing, please contact the Capital Software Sales department.
+
+Please see the file named COMMERCIAL_LICENSE or go to http://www.eQServer.org for details.
+
+
+Third Party Software Licensing:
+------------------------------
+This distribution may include materials developed by third parties. For license and attribution notices for these materials, please refer to the documentation that accompanies this distribution (see the the file named THIRD_PARTY_LICENSES.html) or view the online documentation at <http://www.eQServer.org>.
+

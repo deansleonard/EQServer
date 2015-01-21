@@ -1,0 +1,186 @@
+EQServer License Agreement
+==============================
+
+'EQServer' (hereinafter "Software" or "Product") is offered to licensee (hereinafter "Customer", "you", or "user") by Capital Software Corporation (hereinafter "Capital", "we", "us", or "our"), PO 222004, Chantilly, VA 20153, subject to the terms and conditions of this Software License Agreement (the "Agreement"). This Agreement is effective as of the Effective Date of the Order Form.
+
+EQServer is a software solution providing centralized queuing, tracking, reporting, and automation of target-based transactions.
+
+This license is oriented to commercial customers who do not want to be bound to the AGPL requirement of making their own applications AGPL-compliant too if they use or are based on the Software.
+
+
+1.0 DEFINITIONS.
+
+“Backup Server” means a Server that is used only to archive database or application data or to provide standby capability on systems configured for disaster recovery purposes. If the primary database or server fails, the standby is activated to act as the new primary server.
+
+"Capital Website” means the website located at http://www.EQServer.org.
+
+“Commercial Software” means any software other than EQServer made available to Customer as part of Product during the term of this Agreement, including all Upgrades of Commercial Software made generally available during the term of this Agreement.
+
+“Development Server” means a Server that is used only in a development environment.
+
+"Documentation" means all explanatory written materials available online from http://www.CapitalSoftware.com regarding the use of the Software.
+
+“Effective Date” means the date on which Capital transmits written, faxed, or emailed acceptance of Customer’s Product order placed pursuant to the Order Form.
+
+"AGPL" refers to GNU Affero General Public License version 3 published by the Free Software Foundation. 
+
+“Initial Term” means the period set forth on the applicable Order Form, beginning upon the Effective Date. 
+
+“License Fee” means the fees set forth in the applicable Order Form for Product and as stated in this Agreement.
+
+"Master Server" means a Server that is not a Slave Server. 
+
+“Order Form” means the the applicable Capital document signed by the parties.  If Customer has ordered Product through a third party, such as a reseller, then Order Form means such third party’s order information as provided to Capital.
+
+“Warranty Term(s)” means the 90 Day period set forth in Section 5.1 or as otherwise agreed in writing by the parties.
+
+“Server” means a single machine which processes data using one or more CPUs, and which is owned, leased or otherwise controlled by Customer. In the event such a machine contains Server Blades and/or Server Virtual Operating Environments, each such Server Blade or Server Virtual Operating Environment is a separate Server.
+
+“Server Blade” means a complete computing system on a single circuit board. A Server Blade will include one or more CPUs, memory, disk storage, operating system and network connections. A Server Blade is designed to be hot-pluggable into a space-saving rack; each rack may contain many Server Blades.
+
+“Server Virtual Operating Environment” or “SVOE” means an operating system that has been emulated or does not run directly on physical hardware. A single physical hardware Server or Server Blade can host multiple operating systems and thereby provide multiple SVOEs.
+
+“Services” means the Product services described in this Agreement including, without limitation, technical support, and access to Capital’s knowledge base.
+
+“Slave Server” means a Server that is updated by a Master Server in a replication topology. “Software” means the Commercial Software and Database Software, collectively.
+
+“Term” means the Warranty Term as defined above.
+
+“Test/QA Server” means a Server that is used only in a test or quality assurance environment.
+
+“Upgrades” means bug fixes, updates and/or enhancements for EQServer or other software or software tools that may be provided to Customer as part of Services. 
+
+Other capitalized terms may be defined herein in the context in which they appear, and will have the indicated meaning throughout this Agreement (including any attachments, exhibits, addenda and the like, unless otherwise set forth therein).
+
+
+2.0 LICENSE.
+
+Capital is making this Software available via Capital Website. Capital is licensing you the right to use the Software during the time that this Agreement is in effect subject to your compliance with the terms and conditions of this Agreement. This license shall terminate immediately upon any violation by you of this Agreement. 
+
+Capital retains ownership of the Software itself and reserves any rights not expressly licensed in this Agreement, whether now existing or which may hereafter come into existence. This Software, including but not limited to, all code, screens, displays and documentation is Copyrighted by Capital Software Corporation.
+
+2.1 Capital grants to Customer a license to use Software in accordance with the AGPL License.
+
+2.2 We hereby grant you a non-exclusive, non-transferable and non-assignable license to use Software on no more than the total number of PCs and Servers for which Licensing Fees have been paid or will be paid pursuant to Section 3.2 (collectively “Paid Servers”).  The Software is "in use" on a computer when it is loaded into temporary memory (RAM) or installed into the permanent memory of a computer--for example, a hard disk, CD-ROM or other storage device for the processing of the Software.  There are no restrictions on the number of applications installed on the same server and that share the same installation of the Software. There are no restrictions on the number of CPUs on this computer. There are no restrictions on the number of clients using these server-based applications.
+
+For each Paid Server during each Term, Capital hereby grants to the Customer a limited, non-exclusive and non-transferable right to:
+
+(a) use Product in source code form or compiled object code form in connection with the Customer's internal business operations or public web sites.
+
+(b) modify the provided "major version" Product source code as desired and redeploy to the Customer's internal buisness operations.  For example, if you enter under an agreement under version number 1.0, then you can feel free to download source code updates from the public project repository for that major verion for as long as they are provided (1.1, 1.2, and so forth).  This does not grant you a license to download and modify subsequent major versions of the software, such as version 2.0, etc.
+
+(c) use any additionally provided Commercial Software in source code form for testing purposes
+
+(d) use any additionally provided Commercial Software in object code form in connection with Customer’s internal business operations or public web sites.
+
+2.3 Except for reasonable quantities of copies made for backup and archival purposes, Customer may not make copies of Commercial Software except as expressly authorized in this Agreement. Customer shall not: (i) copy Commercial Software onto any public or distributed network or otherwise distribute or disclose Commercial Software to any third parties; (ii) use Commercial Software as a stand alone application or with applications other than Customer’s applications and software; (iii) use Commercial Software on Servers that are not Paid Servers; (iv) change any proprietary rights notices which appear in Commercial Software; or (v) modify Commercial Software. Upon termination of this Agreement Customer shall have no further rights to copy or use Commercial Software and Customer shall immediately destroy all copies of Commercial Software.
+
+2.4 With respect to each Customer application that utilizes any portion of Product, all of Customer’s Servers running such application must be licensed to use the Product.  See section 2.5 for distribution rights and requirements.
+
+2.5 Capital will provide Licenses to Customer and Customer agrees it will use or apply such Licenses on no more than the quantity of Servers set forth in this Agreement (including any quantity increases pursuant to Section 3.2). Any unauthorized use of Licenses will be deemed to be a material breach of this Agreement.
+
+2.6 Capital hereby grants to the Customer a limited, non-exclusive and non-transferable right to distribute the compiled object code form of the original or modified Product and additionally provided Commerical Software with Customer's own applications to third parties as desired provided the derived application could not reasonably be construed as a "competing" product to Software, unless this no-compete/rebranding clause is waived in writing by Capital.  In this case the "Paid Server" will be understood to be any computer with Product source or a code compiler that utilizes the Product source code or object code in order to create the Third Party Distribution, including developer machines and build boxes. The source code sharing and linking requirements defined by the AGPL are waived.
+
+
+3. DELIVERY; ADDITIONAL SERVERS.
+
+3.1 Customer shall obtain its first copy of Software by via the Capital Website.
+
+3.2 If, at any time Customer increases the quantity of its Servers utilizing all or part of Product, no later than thirty (30) days after each such addition, Customer shall notify Capital and pay the License Fees applicable to such additional Servers beginning from the first date of such utilization.
+
+
+4.0 PRICE & PAYMENT; TAXES.
+
+4.1 License Fees are due upon the commencement of each Term and as set forth in Section 3.2 above for additional Servers. All fees under this Agreement are due upon the date(s) set forth in this Agreement and are payable within thirty (30) days from the date of Capital’s invoice. Payment shall be made without any right of set-off or deduction. All payments made pursuant to this Agreement shall be made in the quoted currency and are nonrefundable.
+
+4.2 All fees are exclusive of applicable local, state, federal and international sales, value added, withholding and other taxes and duties of any kind. Customer shall be responsible for payment of such taxes and duties of any kind payable with respect to the Software and Services furnished pursuant to this Agreement, provided however that Capital shall be responsible for payment of taxes levied or imposed based upon Capital's net income. Without limitation, Customer will be responsible for all applicable sales taxes unless it first claims a sales tax exemption by providing Capital with an exemption certificate acceptable to the applicable authorities.
+
+
+5.0 LIMITED WARRENTY TERM AND TERMINATION.
+
+5.1 Capital will warrant that for a period of 90 of days after delivery of this license to you the Software will perform in substantial accordance with the Documentation furnished in connection with such the Software.
+
+To the extent permitted by applicable law, THE LIMITED WARRANTY IS IN LIEU OF ALL OTHER WARRANTIES OR CONDITIONS, EXPRESS OR IMPLIED, AND WE DISCLAIM ANY AND ALL IMPLIED WARRANTIES OR CONDITIONS, INCLUDING ANY IMPLIED WARRANTY OF TITLE, NONINFRINGEMENT, MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE, regardless of whether we know or had reason to know of your particular needs.  No employee, agent, dealer or distributor of ours is authorized to modify this limited warranty, nor to make any additional warranties.
+
+SOME STATES DO NOT ALLOW THE LIMITATION OR EXCLUSION OF LIABILITY FOR INCIDENTAL OR CONSEQUENTIAL DAMAGES, SO THE ABOVE LIMITATION MAY NOT APPLY TO YOU.
+
+5.2 This Agreement shall commence on the Effective Date and continue for as long as the Customer uses the Software, unless terminated earlier as set forth below.
+
+5.3 Capital may terminate this Agreement upon written notice to Customer in the event of Customer’s (a) unauthorized use of Product, (b) failure to make timely payment to Capital, or (c) subject to its obligations under Section 9 of this Agreement, should the Product become, or in Capital’s reasonable opinion is likely to become, the subject of a claim of intellectual property infringement or trade secret misappropriation. Otherwise, either party may terminate this Agreement immediately in the event the other party commits a material breach of this Agreement and fails to remedy that breach within thirty (30) days of receipt of notice of material breach.
+
+5.4 Upon termination of this Agreement, Customer shall have no further rights to (a) receive or use Services, (b)receive further Upgrades under this Agreement, and (c) copy or use the Product or additionally provided Commercial Software. Sections 1, 4, 5, 6, 7, 8, 9, 10, 11, and 12 of this Agreement shall survive the termination of this Agreement for any reason.
+
+ 
+6.0 INTELLECTUAL PROPERTY & PROPRIETARY RIGHTS.
+
+The intellectual property and proprietary rights of whatever nature in Product and related documentation, including derivative works, are and shall remain the exclusive property of Capital and/or its suppliers,and nothing in this Agreement should be construed as transferring any aspects of such rights to Customer or any third party. Capital and its suppliers reserve any and all rights not expressly granted in this Agreement and the GPL License.
+
+
+7.0 WARRENTY AND DISCLAIMER.
+
+7.1 Capital warrants that during each Term it will use its commercially reasonable efforts to ensure that Services are conducted in a workmanlike manner by qualified personnel. Except for the foregoing, PRODUCT IS PROVIDED TO CUSTOMER "AS IS," WITHOUT ANY WARRANTIES OF ANY KIND, INCLUDING, BUT NOT LIMITED TO, WARRANTIES CONCERNING THE INSTALLATION, USE OR PERFORMANCE OF PRODUCT. CAPITAL AND ITS SUPPLIERS DISCLAIM ANY AND ALL WARRANTIES, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO ANY WARRANTY OF MERCHANTABILITY FITNESS FOR A PARTICULAR PURPOSE AND/OR NON-INFRINGEMENT. CAPITAL AND ITS SUPPLIERS DO NOT WARRANT THAT PRODUCT WILL MEET CUSTOMER'S REQUIREMENTS OR THAT THE OPERATION THEREOF WILL BE UNINTERRUPTED OR ERROR-FREE, OR THAT ERRORS WILL BE CORRECTED. Without limiting the generality of the foregoing disclaimer, Product is not specifically designed, manufactured or intended for use in the planning, construction, maintenance, control, or direct operation of nuclear facilities; aircraft navigation, control or communication systems, weapons systems, or direct life support systems.
+
+
+8.0 CONFIDENTIALITY.
+
+8.1 Capital and Customer will retain in confidence all information and know-how transmitted by the other party during each Term, and for a period of three (3) years beyond the Term, that is clearly designated as being proprietary and/or confidential or that, by the nature of the circumstances surrounding the disclosure, ought reasonably to be treated as proprietary and/or confidential, and will make no use of such information and know-how except to further the purposes set forth in this Agreement. Services (including without limitations the Capital knowledge base), Commercial Software, and Upgrades thereof are the confidential information of Capital.
+
+8.2 Notwithstanding Section 8.1, Capital and Customer shall not have an obligation to maintain the confidentiality of information that (a) is now or subsequently becomes generally known or available by publication, commercial use or otherwise through no fault of the recipient; (b) is known by the recipient at the time of disclosure and is not subject to restriction; (c) is independently developed by the recipient without use of the discloser’s confidential information; (d) is not designated as proprietary and/or confidential or would not reasonably be considered as such; or (e) is lawfully obtained from a third-party who has the right to make such disclosure. Further, the recipient may disclose confidential information as required by government or judicial order, provided the recipient gives the disclosing party written notice prior to such disclosure and complies with any protective order (or equivalent) imposed on such disclosure. The terms of confidentiality under this Agreement shall not be construed to limit either party’s right to independently develop or acquire products without use of the other party’s confidential information.
+ 
+
+9.0 LIMITED REMEDY.
+
+9.1 Our entire liability and your exclusive remedy for breach of the foregoing warranty shall be, at our option, to either: (a) return the prorated price you paid, or (b) repair or replace the Software that does not meet the foregoing warranty if we are provided with a copy of your receipt.
+ 
+
+10. LIMITATION OF LIABILITY.
+
+10.1 IN NO EVENT WILL WE BE LIABLE TO YOU FOR ANY DAMAGES, INCLUDING ANY LOST PROFITS, LOST SAVINGS, OR OTHER INCIDENTAL OR CONSEQUENTIAL DAMAGES ARISING FROM THE USE OR THE INABILITY TO USE THE SOFTWARE (EVEN IF WE OR AN AUTHORIZED DEALER OR DISTRIBUTOR HAS BEEN ADVISED OF THE POSSIBILITY OF THESE DAMAGES), OR FOR ANY CLAIM BY ANY OTHER PARTY.
+
+SOME STATES DO NOT ALLOW THE LIMITATION OR EXCLUSION OF LIABILITY FOR INCIDENTAL OR CONSEQUENTIAL DAMAGES, SO THE ABOVE LIMITATION MAY NOT APPLY TO YOU.
+
+IN NO EVENT WILL THE LIABILITY OF OPENRULES RELATING TO THIS AGREEMENT, THE SOFTWARE, AND ANY THIRD PARTY SOFTWARE, EXCEED THE FEES RECEIVED BY CAPITAL.
+ 
+
+11.0 AUDIT RIGHTS. 
+
+During the term of this Agreement and for a five (5) year period following termination or expiration, Capital shall have the right (at Capital’s own expense) to conduct periodic reviews of Customer's records relating to its reproduction and use of the Product for the purpose of verifying Customer’s compliance with the terms of this Agreement. Capital shall exercise this right upon no fewer than thirty (30) days' prior notice. Customer will provide Capital with reasonable accommodation for the review, including reasonable use of available office equipment and access to all relevant Customer personnel and records during normal business hours. Capital shall deliver to Customer a copy of the results of any such review. If an underpayment is identified, Customer shall immediately pay the full amount of any underpayment. Customer shall also pay Capital the cost of any review, including (without limitation) travel expenses and the costs of any attorneys and consultants, if the review determines that Customer has underpaid fees for the period audited in excess of five percent (5%) of the proper amount owed to Capital.
+
+
+12.0 MISCELLANEOUS.
+
+12.1 Severability. If any part of this Agreement is held by a court of competent jurisdiction to be illegal or unenforceable, the validity or enforceability of the remainder of this Agreement shall not be affected and such provision shall be deemed modified to the minimum extent necessary to make such provision consistent with applicable law and, in its modified form, such provision shall then be enforceable and enforced.
+
+12.2 Assignment. Customer may not assign this Agreement or its rights or obligations under this Agreement to any person or party, whether by operation of law or otherwise, without Capital’s prior consent (at Capital’s sole discretion). Any attempt by Customer to assign this Agreement without Capital’s prior consent, where such consent is required, shall be null and void. Subject to the foregoing conditions, this Agreement shall be binding upon and inure to the benefit of each party and its respective successors and assigns. There are no intended third party beneficiaries of this Agreement.
+
+12.3 No Waiver; Limitations. Failure by either party to exercise any right or remedy under this Agreement does not signify acceptance of the event giving rise to such right or remedy. To the extent permitted by applicable law, no action, regardless of form, arising out of this Agreement may be brought by Customer more than one (1) year after the cause of action has accrued.
+
+12.4 Governing Law.
+
+12.4.1 This Agreement shall be governed by the laws of the Commonwealth of Virginia, without regard to the conflict of laws provisions thereof. In no event shall either the United Nations Convention on Contracts for the International Sale of Goods or any adopted version of the Uniform Computer Information Transactions Act apply to, or govern, this Agreement. In the event either party initiates an action in connection with this Agreement or any other dispute between the parties, the exclusive venue and jurisdiction of such action shall be in the state and federal courts in Loudoun County, Virginia, USA.
+
+12.4.2 Notwithstanding Section 12.4.1, either party may enforce any judgment rendered by such court in any court of competent jurisdiction, and Capital may seek injunctive or other equitable relief in any jurisdiction in order to protect its intellectual property rights.
+
+12.4.3 Any action brought under this Agreement shall be conducted in the English language. If the Customer is located in France or Quebec, Canada, the following clause applies: The parties hereby confirm that they have requested that this Agreement be drafted in English. Les parties contractantes confirment qu’elles ont exigé quele présent contrat et tous les documents associés soient redigés en anglais.
+
+12.4.4 Customer shall comply at its own expense with all relevant and applicable laws related to the use and distribution of Product as permitted in this Agreement.
+
+12.5 Notices. Unless otherwise agreed to by the parties, any notice, authorization, or consent ("Notice") required or permitted to be given or delivered under this Agreement shall be in writing and addressed and delivered to the other party’s address set forth on the Order Form, to the attention of "Legal". Notice shall be deemed to have been received by a party, and shall be effective: (a) on the fifth business day after which such Notice is deposited prepaid in the local postal system; or (b) on the day received, if sent with a reputable, expedited overnight or international courier or hand delivered. Either party may change its address for receipt of Notice purposes upon issuance of Notice thereof in accordance with this Section.
+
+12.6 Attorneys Fees. Subject to Section 10, for the purposes of any action between the parties relating to this Agreement, the prevailing party shall be entitled to recover reasonable attorneys' fees and costs.
+
+12.7 Export Law Assurances. Customer acknowledges that Product may be subject to export and import control laws, and agrees to comply fully with those laws in connection with Product. Customer agrees that Product is not being and will not be acquired for, shipped, transferred, or re-exported, directly or indirectly, to proscribed or embargoed countries or their nationals, nor will it be used for: nuclear activities, chemical or biological weapons, or missile projects unless authorized by the U.S. government. Customer hereby certifies that it is not prohibited by the U.S. government from participating in export or re-export transactions.
+
+12.8 U.S. Government Restricted Rights. If Software is being acquired by or on behalf of the U.S. Government or by a U.S. Government prime contractor or subcontractor (at any tier), in accordance with 48 C.F.R. 227.7202-4 (for Department of Defense ("DOD") acquisitions) and 48 C.F.R. 2.101 and 12.212 (for non-DOD acquisitions), the government's rights in such Software and any documentation, including its rights to use, modify, reproduce, release, perform, display or disclose Software or any documentation, will be subject in all respects to the license rights and restrictions provided in this Agreement.
+
+12.9 Force Majeure. Except for performance of a payment obligation, neither party will be liable to the other by reason of any failure in performance of this Agreement if the failure arises out of the unavailability of communications facilities or energy sources, acts of God, acts of the other party, acts of governmental authority,fires, strikes, delays in transportation, riots, terrorism, war, or any causes beyond the reasonable control of that party.
+
+12.10 Entire Agreement. This Agreement comprises the entire agreement between the parties regarding the subject matter hereof and supersedes and merges all prior proposals, understandings and all other agreements, oral and written, between the parties relating to the subject matter of this Agreement. Capital reserves the right to amend or modify this Agreement at any time and in any manner by providing reasonable notice to the Customer. Customer agrees that such reasonable notice may be provided by posting on Capital's Website; the Customer's start, registration, or download pages; email; or other written notice. Except as otherwise set forth herein, this Agreement may be amended or modified only in a writing executed by both parties. Capital’s acceptance of any document submitted by Customer to Capital shall not be construed as an acceptance of provisions which are in any way in conflict or inconsistent with, or in addition to, this Agreement, unless such terms are separately and specifically accepted in writing by an authorized representative of Capital. This Agreement may be incorporated in other documents or executed via facsimile or via emailed PDF-format document (or other mutually agreeable document format), and a facsimile or emailed copy of either party's signature shall be deemed and be enforceable as an original thereof. This Agreement may be executed in counterparts, both of which taken together shall constitute one single Agreement between the parties.
+
+
+12.11 Use of Capital Website.  Use of the Capital Website is also subject to all terms and conditions and online agreements that are displayed on the Capital Website. Please review such terms and conditions and agreements carefully. 
+
+12.12 Modification of Capital Website, Software, and Services.  Capital reserves the right to modify the Capital Website, the Software, and the services made available on the Capital Website at any time and for any reason, or for no reason at all, in Capital's sole discretion, without notice. Capital also reserves the right to cease offering the Capital Website, the Software or any of the services made available on the Capital Website at any time and for any reason, or for no reason at all, in Capital's sole discretion. 
+
+12.13 Trademarks.  "enterprise-Q" is a registered trademark of Capital Software Corporation.
+ 

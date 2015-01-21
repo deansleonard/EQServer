@@ -1,0 +1,112 @@
+#
+# $Id$
+# Build file for EQ 1.5 production version
+# Format:
+# <input_file> <output_file> <flag>
+#
+# Input file - absolute path to a file that will be included into EQ build.
+#     %ORIGIN% keyword can be used to specify source EQ directory.
+#
+# Output file - relative path to output file. This path is always relative to
+#     EQ build directory. If output filename is omitted (only subdirectory
+#     is specified) then the Build.pl will use the same name of file as is
+#     in <input_file>. In this case subdirectory name should always end with '/'.
+#
+# Flag - The following flags are supported:
+#
+#     SETX - 'x' (executable) mode will be set for output file. This option
+#         works only on UNIX.
+#
+#     SMALL - if this option is specified together with TOEXE option then
+#         a perl script is compiled with "-small" perl2exe option instead
+#         of default "-tiny" option.
+#
+#     FREE - if this option is specified together with TOEXE option then
+#         a perl script is compiled with "--freestanding" perlapp option instead
+#         of default "--dependent" option.
+#
+#     TOEXE - all references to perl scripts inside of output file will be
+#         replaced with references to similar executable file (i. e.
+#         reference to '/usr/bin/perl MyScript.pl' will be replaced with
+#         'MyScript.exe'. If input file is a perl script then it will also
+#         be compiled.
+#
+#     UNIX - current file is included in the EQ build only if builting a
+#         Unix version.
+#
+#     WIN - current file is included in the EQ build only if builting a
+#         Windows version.
+#
+
+%ORIGIN%/bin/Perl510.dll						bin/			WIN
+
+%ORIGIN%/Install-EQServer.pl					./		 		TOEXE,FREE
+
+%ORIGIN%/license/LICENSE						license/
+%ORIGIN%/license/COMMERCIAL_LICENSE				license/
+%ORIGIN%/license/GNU_AGFL_LICENSE				license/
+%ORIGIN%/license/THIRD_PARTY_LICENSES.html		license/
+
+%ORIGIN%/bin/EQServer.pl						bin/			TOEXE,FREE
+
+%ORIGIN%/bin/EQMsg.exe							bin/			WIN
+%ORIGIN%/bin/EQMsg.aix							bin/EQMsg		AIX,SETX
+%ORIGIN%/bin/EQMsg.linux						bin/EQMsg		LINUX,SETX
+%ORIGIN%/bin/EQMsg.solaris						bin/EQMsg		SOLARIS,SETX
+
+%ORIGIN%/bin/sqlite3.exe						bin/sqlite3.exe				WIN
+%ORIGIN%/bin/sqlite3.aix						bin/sqlite3					AIX,SETX
+%ORIGIN%/bin/sqlite3.linux						bin/sqlite3					LINUX,SETX
+%ORIGIN%/bin/sqlite3.solaris					bin/sqlite3					SOLARIS,SETX
+%ORIGIN%/bin/SQLiteUpdate.pl					install/
+%ORIGIN%/bin/SQLiteSelect.pl					install/
+
+%ORIGIN%/bin/eqaccount.exe						bin/			WIN
+%ORIGIN%/bin/eqps.exe							bin/			WIN
+%ORIGIN%/bin/eqreg.exe							bin/			WIN
+%ORIGIN%/bin/eqsrv.exe							bin/			WIN
+%ORIGIN%/bin/EQSrvAny.exe						bin/			WIN
+
+%ORIGIN%/bin/tar.exe							bin/			WIN
+%ORIGIN%/bin/win32gnu.dll						bin/			WIN
+
+%ORIGIN%/bin/update_status.pl					bin/
+%ORIGIN%/bin/clean_temp.pl						bin/
+
+%ORIGIN%/bin/cron/clean_temp.bat				bin/cron/		WIN
+%ORIGIN%/bin/cron/update_status.bat				bin/cron/		WIN
+
+%ORIGIN%/bin/cron/clean_temp.sh					bin/cron/		TOEXE,UNIX,SETX
+%ORIGIN%/bin/cron/update_status.sh				bin/cron/		TOEXE,UNIX,SETX
+
+# Provide sample script for Status Exec
+%ORIGIN%/trans/*								trans/	
+
+%ORIGIN%/install/eqserver_sqlite.sql			install/
+%ORIGIN%/install/PostInstall.linux.sh			install/PostInstall.sh		LINUX,SETX
+%ORIGIN%/install/PostInstall.solaris.sh			install/PostInstall.sh		SOLARIS,SETX
+%ORIGIN%/install/PostInstall.aix.sh				install/PostInstall.sh		AIX,SETX
+%ORIGIN%/install/EQ.ico							install/
+
+# *NIX boot scripts
+#%ORIGIN%/install/S50apache.sh					install/					UNIX,SETX
+#%ORIGIN%/install/S99VEQScheduler.sh			install/					UNIX,SETX
+%ORIGIN%/install/S99VEQServer.sh				install/					UNIX,SETX
+
+%ORIGIN%/cfg/EQServer.cfg						cfg/
+%ORIGIN%/cfg/classes.cfg						cfg/
+%ORIGIN%/cfg/clean_temp.cfg						cfg/
+%ORIGIN%/cfg/eqmsg.cfg							cfg/
+
+%ORIGIN%/cfg/trans/eqserver.cfg					cfg/trans/
+
+%ORIGIN%/lib/eqclientlib.pl						lib/
+%ORIGIN%/lib/EQInstallLib.pl					lib/
+%ORIGIN%/lib/EQCommonLib.pl						lib/
+%ORIGIN%/lib/SQLite.pl							lib/
+
+%ORIGIN%/lib/cygsqlite3-0.dll					lib/cygsqlite3-0.dll		WIN
+%ORIGIN%/lib/libsqlite3.a.aix					lib/libsqlite3.a			AIX
+%ORIGIN%/lib/libsqlite3.so.0.8.6.linux			lib/libsqlite3.so.0.8.6		LINUX
+%ORIGIN%/lib/libsqlite3.so.0.8.6.solaris		lib/libsqlite3.so.0.8.6		SOLARIS
+
