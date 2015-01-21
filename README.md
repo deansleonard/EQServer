@@ -20,19 +20,21 @@ Technical details about the eQ Server are documented in the [eQ Technical Refere
 
 EQServer can be installed from sources with only Perl 5 as a prerequisite (versions available on our website).  If you wish to use your own installation of perl, make sure it has DBI and DBD::SQLite module installed.
 
-1. Get EQServer from [Git Hub] (https://github.com/deansleonard/EQServer)
-1. Extract EQServer and change into the **EQServer** subdirectory.
-1. Download Perl5 for your platform from our website into the EQServer subdirectory:
+1. Download ZIP and extract or 'git clone git://github.com/deansleonard/EQServer'
+1. Change into the **EQServer** subdirectory.
+1. Download Perl5 for your platform from our website:
 	* [Perl5 for Windows] (http://www.eqserver.org/downloads/windows/perl5.tar)
 	* [Perl5 for Linux] (http://www.eqserver.org/downloads/linux/perl5.tar)
 	* [Perl5 for AIX] (http://www.eqserver.org/downloads/aix/perl5.tar)
 	* [Perl5 for Solaris] (http://www.eqserver.org/downloads/solaris/perl5.tar)
-1. Extract perl5.tar into EQServer subdirectory, creating a subdirectory named **perl5**:
+1. Extract **perl5.tar** into **EQServer** subdirectory, creating a subdirectory named **perl5**:
 	* Windows: Use WinZip or some other extraction application
 	* Unix-base: **tar xvf perl5.tar**
 1. Run install script. If you're using your own version of Perl, first edit the script to set EQPERL to the correct path:
 	* Windows: **Install-EQServer.bat**
 	* Unix-base: **Install-EQServer.sh**
+
+Please note that, after running the install, some shared library files will be renamed and other deleted, such as files not required for your platform, but all the core perl scripts remain the same.
 
 
 ## Build Process
