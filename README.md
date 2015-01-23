@@ -29,7 +29,7 @@ EQServer can be installed from sources with only Perl 5 as a prerequisite (versi
 	* [Perl5 for Solaris] (http://www.eqserver.org/downloads/solaris/perl5.tar)
 1. Extract **perl5.tar** into **EQServer** subdirectory, creating a subdirectory named **perl5**:
 	* Windows: Use WinZip or some other extraction application
-	* Unix-base: **tar xvf perl5.tar**
+	* Unix-base: **tar xvf /path/to/perl5.tar**
 1. Run install script. If you're using your own version of Perl, first edit the script to set EQPERL to the correct path:
 	* Windows: **Install-EQServer.bat**
 	* Unix-base: **Install-EQServer.sh**
