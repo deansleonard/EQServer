@@ -1,4 +1,4 @@
-#!C:/dean/EQ-Working/EQServer/perl5/bin/perl
+#!C:/scratch/EQServer/perl5/bin/perl
 
 #
 #	EQServer.pl - server process to queue transactions
@@ -466,7 +466,7 @@ $D_Key = "T_DID";
 	reqkey		=> 0,		# 0=no, 1=yes
 	keytype   	 	=> "STRING",
 	hashptr 		=> \%D_TargetTypeHash,
-	defval		=> "\@$xc_DEFTARGETTYPE"
+	defval		=> "$xc_DEFTARGETTYPE"
 );
 
 %D_PriorityDesc =
@@ -1765,7 +1765,7 @@ $T_Key = "T_TID";
 	hashptr 	=> \%T_TargetTypeHash,
 	stdarg	=> 1,
 	batchfield	=> 1,
-	defval	=> "\@$xc_DEFTARGETTYPE"
+	defval	=> "$xc_DEFTARGETTYPE"
 );
 
 %T_TIDDesc =
@@ -2316,7 +2316,7 @@ $Q_Key = "T_MID";
 	hashptr	=> \%Q_TargetTypeHash,
 	statusexecvar	=> 1,
 	function => "",
-	defval 	=> "\@$xc_DEFTARGETTYPE"
+	defval 	=> "$xc_DEFTARGETTYPE"
 );
 
 %Q_TIDDesc =
@@ -4859,7 +4859,7 @@ $buf =~ s/(?:^|;)\s*([^=;\s]+)\s*=\s*(?:(['"])(.*?)\2|(.*?))\s*(?=;|$)/$$l_hash{
 unless( $buf =~ /^;*\s*$/ )
 {
 	$buf =~ s/^;+//;
-	&LogMsg( "Invalid data passed to HashMsg: $$p_orig_buf\n")
+	&LogMsg( "Invalid data passed to HashMsg: $$p_orig_buf\n");
 }
 
 # Force only 'T_' keywords to uppercase
@@ -4965,7 +4965,7 @@ foreach $mid ( keys %$p_hash )
 #-------------------------------------------------------#
 sub CheckIPExclude
 {
-my( $ip, $target ) = @_;
+my( $ip ) = @_;
 my( $buf, $k, $i );
 
 # Return if IP is invalid
@@ -4981,17 +4981,6 @@ for ($i = 0; $i < @G_ExcludeIPs; $i += 2)
 	# If IP is in range of excluded IPs
 	if	(($k >= $G_ExcludeIPs[$i])&&($k <= $G_ExcludeIPs[$i + 1]))
 	{
-#		# Update IP in message queue for the target
-#		&UpdateTargetIP( $target, $ip );
-#		# Check if we have already dispatch msgs in the queue for this target
-#		foreach $k (keys %D_TargetHash)
-#		{
-#			if	($D_TargetHash{$k} eq $target)
-#			{
-#				$buf = &DeleteDRec ($k);
-#				push( @G_ReturnArray, $buf );
-#			}
-#		}
 		return( 1 );
 	}
 }
@@ -5217,19 +5206,87 @@ return( 0, "" );
 
 
 #-------------------------------------------------------#
+#	Get Msg Targets
+#-------------------------------------------------------#
+sub GetMsgTargets
+{
+my( $p_hash, $p_targethash ) = @_;
+
+my $l_ttype_key = $Q_TargetTypeDesc{"keyword"};
+my $l_target_key = $Q_TargetDesc{"keyword"};
+my $l_targets_key = $l_target_key . "S";
+my $l_tfile_key = "T_TFILE";
+
+my $def_ttype = $$p_hash{$l_ttype_key} || "$xc_DEFTARGETTYPE" || "Device";
+
+return( 1, "Add message must have $l_target_key, $l_targets_key or $l_tfile_key keywords" )
+	unless( $p_hash->{$l_target_key} || $p_hash->{$l_targets_key} || $p_hash->{$l_tfile_key} );
+
+if( defined( $p_hash->{$l_targets_key} ) && $p_hash->{$l_targets_key} ne "" )
+{
+	@{$p_targethash->{$def_ttype}} = split (/\s*,\s*/, $p_hash->{$l_targets_key});
+	delete $p_hash->{$l_targets_key};
+}
+elsif( defined( $p_hash->{$l_target_key} ) && $p_hash->{$l_target_key} ne "" )
+{
+	$p_targethash->{$def_ttype} = $p_hash->{$l_target_key};
+	delete $p_hash->{$l_target_key};
+}
+
+if( defined( $p_hash->{$l_tfile_key} ) && $p_hash->{$l_tfile_key} ne "" && -f $p_hash->{$l_tfile_key} )
+{
+	# Get name of the file containing a list of targets
+	my $file = $p_hash->{$l_tfile_key};
+	$file =~ s#\\#/#g;
+	# Open the list
+	return( 1, "Cannot open target file '$file': $!" ) unless( open( TARGETS_FILE, $file ) );
+
+	# Read data from the file line by line
+	my @a = <TARGETS_FILE>;
+	close (TARGETS_FILE);
+	delete $$p_hash{T_TFILE};
+	foreach my $s( @a )
+	{
+		# Skip empty lines and comments
+		next	if	($s =~ /^#/);
+		$s =~ s/\s+$//;
+		$s =~ s/^\s+//;
+		next	if	($s eq "");
+		# Target on the line can be in format "<label>" or "<type>:<label>".
+		my( $ttype, $target ) = split (":", $s, 2);
+		if( defined( $target ) )
+		{
+			# Save target's label and type
+			push( @{$p_targethash->{$ttype}}, $target);
+		}
+		else
+		{
+			# Save target's label and default type.
+			push( @{$p_targethash->{$def_ttype}}, $ttype);
+		}
+	}
+}
+
+return( 0, "" );
+
+}	# end of Get Msg Targets
+
+
+#-------------------------------------------------------#
 #	M Dispatch
 #-------------------------------------------------------#
 sub M_Dispatch
 {
 my( $p_hash ) = @_;
 my( %d_hash, $exclude );
-my( $tgtkey, $target, $buf, $v, @l_targets, $i, $InQueue, $did );
+my( %targethash, $ttype, $p_tararr, $target, $buf, $v, $i, $InQueue, $did );
 my( $program, $appargs, $l_ip, $prikey, $pri, $l_xip, $err, $msg );
 my( $bidkey, $bidval, $expire, $result, $ttype, $trans, $profile );
 
-$tgtkey = $Q_TargetDesc{keyword};
-$target = $$p_hash{$tgtkey};
+($err, $msg) = &GetMsgTargets( $p_hash, \%targethash );
+return( $err, $msg ) if( $err );
 
+$tgtkey = $Q_TargetDesc{"keyword"};
 $bidkey = $Q_BatchIdDesc{"keyword"};
 $bidval = $$p_hash{"$bidkey"};
 
@@ -5249,21 +5306,10 @@ if	($expire)
 	$$p_hash{T_EXPIRE} = $expire;
 }
 
-if( !defined($target) || (length($target) == 0) )
-{
-	# Check if a list of targets was provided instead of one target
-	$target = $$p_hash{$tgtkey . "S"};
-	return( 1, "Dispatch message must have $tgtkey" ) unless( defined($target) && $target ne "" );
-	@l_targets = split (",", $target);
-	delete $$p_hash{$tgtkey . "S"};
-}
-else { @l_targets = ( $target ); }
 
-$ttype = $$p_hash{T_TARGETTYPE} || "\@$xc_DEFTARGETTYPE";
 # If IP was provided, check if we should exclude it
 $l_xip = $D_ExcludeIPDesc{"keyword"};
-$$p_hash{$l_xip} = CheckIPExclude( $$p_hash{IP}, $target )
-	if	(defined ($$p_hash{IP}));
+$$p_hash{$l_xip} = &CheckIPExclude( $$p_hash{IP} ) if( defined($$p_hash{IP}));
 
 # Invoke Default Finished Exec to capture Node Alive status...
 if( $$p_hash{RECORD} || $$p_hash{T_RECORD} ) 
@@ -5276,58 +5322,62 @@ if( $$p_hash{RECORD} || $$p_hash{T_RECORD} )
 }
 
 # Dispatch a list of targets one by one
-while( $target = shift( @l_targets) ) 
+foreach $ttype( keys %targethash )
 {
-	# Don't put on Dispatch Queue if no records in Message Queue
-	if( !exists($Q_TargetKeyHash{$ttype . $target}) ) 
+	$p_tararr = $targethash{$ttype};
+	foreach $target( @{$targethash{$ttype}} )
 	{
-		$buf = "$SUCCESS_MSG: Nothing queued for '$target'\n";
+		# Don't put on Dispatch Queue if no records in Message Queue
+		if( !exists($Q_TargetKeyHash{$ttype . $target}) ) 
+		{
+			$buf = "$SUCCESS_MSG: Nothing queued for '$ttype:$target'\n";
+			push( @G_ReturnArray, $buf );
+			next;
+		}
+
+		# Perform Variable Substitution on Msgs Queued for Target 
+		# Using Keyword/Value Pairs in Dispatch Msg
+		&CheckDispatchVarHash( $ttype, $target, $p_hash )
+			unless( $G_DispatchVarCount == 0 );
+
+		# Update the Batch ID of targets queued messages
+		&UpdateBatchID( $ttype, $target, $bidval ) if( defined($bidval) );
+
+		%d_hash = ();
+		$$p_hash{$tgtkey} = $target;
+
+		&ResetTargetRetry( $ttype, $target, $trans, $profile );
+		&UpdateTargetIP( $ttype, $target, $$p_hash{IP} ) if( defined $$p_hash{IP} );
+
+		# Don't queue target if already dispatched
+		if( exists($G_DispatchTargetHash{$ttype}{$target}) ) 
+		{
+			# Update IP exclusion parameter
+			$did = $G_DispatchTargetHash{$ttype}{$target};
+			$D_ExcludeIPHash{$did} = $$p_hash{$l_xip} if( defined($$p_hash{$l_xip}) );
+			push( @G_ReturnArray, "$SUCCESS_MSG: '$target' already in dispatch queue\n" );
+			next;
+		}
+
+		# Assign target to dispatch queue
+		$d_hash{T_TARGETTYPE} = $ttype;
+		$d_hash{$tgtkey} = $target;
+		$d_hash{$prikey} = $pri;
+		$d_hash{T_EXPIRE} = $expire;
+		$d_hash{$l_xip}  = $$p_hash{$l_xip};
+		$d_hash{T_TRANS} = $trans;
+		$d_hash{T_PROFILE} = $profile;
+		($err, $msg) = &M_AddDRec( \%d_hash );
+		$buf = $err ? "$FAILURE_MSG: $msg" : "$SUCCESS_MSG: $msg";
 		push( @G_ReturnArray, $buf );
-		next;
-	}
-
-	# Perform Variable Substitution on Msgs Queued for Target 
-	# Using Keyword/Value Pairs in Dispatch Msg
-	&CheckDispatchVarHash( $ttype, $target, $p_hash )
-		unless( $G_DispatchVarCount == 0 );
-
-	# Update the Batch ID of targets queued messages
-	&UpdateBatchID( $ttype, $target, $bidval ) if( defined($bidval) );
-
-	%d_hash = ();
-	$$p_hash{$tgtkey} = $target;
-
-	&ResetTargetRetry( $ttype, $target, $trans, $profile );
-	&UpdateTargetIP( $ttype, $target, $$p_hash{IP} ) if( defined $$p_hash{IP} );
-
-	# Don't queue target if already dispatched
-	if( exists($G_DispatchTargetHash{$ttype}{$target}) ) 
-	{
-		# Update IP exclusion parameter
-		$did = $G_DispatchTargetHash{$ttype}{$target};
-		$D_ExcludeIPHash{$did} = $$p_hash{$l_xip} if( defined($$p_hash{$l_xip}) );
-		push( @G_ReturnArray, "$SUCCESS_MSG: '$target' already in dispatch queue\n" );
-		next;
-	}
-
-	# Assign target to dispatch queue
-	$d_hash{T_TARGETTYPE} = $ttype;
-	$d_hash{$tgtkey} = $target;
-	$d_hash{$prikey} = $pri;
-	$d_hash{T_EXPIRE} = $expire;
-	$d_hash{$l_xip}  = $$p_hash{$l_xip};
-	$d_hash{T_TRANS} = $trans;
-	$d_hash{T_PROFILE} = $profile;
-	($err, $msg) = &M_AddDRec( \%d_hash );
-	$buf = $err ? "$FAILURE_MSG: $msg" : "$SUCCESS_MSG: $msg";
-	push( @G_ReturnArray, $buf );
 	
-	next if( $err );
-	$did = $d_hash{$D_Key};
-	if( $did )
-	{
-		&DispatchUpdateReason( $did, $$p_hash{T_EQUSER}, $$p_hash{T_REASON} );
-		push( @G_CheckDispatchedTarget, $did );
+		next if( $err );
+		$did = $d_hash{$D_Key};
+		if( $did )
+		{
+			&DispatchUpdateReason( $did, $$p_hash{T_EQUSER}, $$p_hash{T_REASON} );
+			push( @G_CheckDispatchedTarget, $did );
+		}
 	}
 }
 
@@ -5386,9 +5436,8 @@ sub M_Add
 {
 my( $p_hash ) = @_;
 my( $buf, $trans, $transval, $status, $exec_kw, $mid, $dupmid );
-my( $s, $i, $target, @l_targets, $l_target_key, $l_targets_key, %l_hash_copy );
+my( $s, $i, $target, %l_hash_copy, $ttype, %targets_added, $err, $msg );
 my( $key, $value, $parameters, $chkdup_string, $last_mid, @target_types );
-my( $ttype, $def_ttype, $file, %targets_added, $err, $msg, $equser, $eqgroup );
 
 # Make sure hash contains $T_DefKey (T_TRANS) and value is supported
 $trans = $$p_hash{$T_DefKey};
@@ -5489,64 +5538,9 @@ if( $$p_hash{RECORD} || $$p_hash{T_RECORD} )
 $exec_kw = $T_ExecDesc{keyword};
 return( 1, "file not found - $exec_kw=$$p_hash{$exec_kw}" ) unless( -f $$p_hash{$exec_kw} );
 
-$l_target_key = $Q_TargetDesc{"keyword"};
-$l_targets_key = $l_target_key . "S";
-@target_types = ();
-$def_ttype = $$p_hash{T_TARGETTYPE} || "\@$xc_DEFTARGETTYPE";
-if	((defined ($$p_hash{$l_targets_key}))&&($$p_hash{$l_targets_key} ne ""))
-{
-	@l_targets = split (/\s*,\s*/, $$p_hash{$l_targets_key});
-	delete $$p_hash{$l_targets_key};
-}
-elsif	((defined ($$p_hash{$l_target_key}))&&($$p_hash{$l_target_key} ne ""))
-{
-	@l_targets = $$p_hash{$l_target_key};
-}
-elsif	((defined ($$p_hash{T_TFILE}))&&($$p_hash{T_TFILE} ne ""))
-{
-	# Get name of the file containing a list of targets
-	$file = $$p_hash{T_TFILE};
-	$file =~ s#\\#/#g;
-	@l_targets = ();
-	# Open the list
-	return( 1, "Cannot open target file '$file': $!" ) unless( open( TARGETS_FILE, $file ) );
-
-	# Read data from the file line by line
-	while (defined ($s = <TARGETS_FILE>))
-	{
-		# Skip empty lines and comments
-		next	if	($s =~ /^#/);
-		$s =~ s/\s+$//;
-		$s =~ s/^\s+//;
-		next	if	($s eq "");
-		# Target on the line can be in format "<label>" or "<type>:<label>".
-		($ttype, $target) = split (":", $s, 2);
-		if	(defined ($target))
-		{
-			# Make sure valid target type specified
-			$ttype = "\@" . $ttype unless( $ttype =~ /^\@/ );
-#			return( 1, "Invalid target type '$ttype' in target file '$file'\n" ) 
-#				unless( $ttype eq "\@Endpoint" || $ttype eq "\@ManagedNode" || $ttype eq "\@Computer" );
-
-			# Save target's label and type
-			push (@l_targets, $target);
-			push (@target_types, $ttype);
-		}
-		else
-		{
-			# Save target's label and default type.
-			push (@l_targets, $ttype);
-			push (@target_types, $def_ttype);
-		}
-	}
-	close (TARGETS_FILE);
-	delete $$p_hash{T_TFILE};
-}
-else
-{
-	# Transaction must have T_TARGET, T_TARGETS or T_TFILE keys
-	return( 1, "Add message must have T_TARGET, T_TARGETS or T_TFILE keywords" );
-}
+my( %targethash );
+($err, $msg) = &GetMsgTargets( $p_hash, \%targethash );
+return( $err, $msg ) if( $err );
 
 $$p_hash{T_SID} = "0";
 
@@ -5579,50 +5573,48 @@ else
 
 $i = 0;
 %l_hash_copy = %$p_hash;
-foreach $target (@l_targets)
+foreach $ttype( keys %targethash )
 {
-	# 2011SEP26 - DSL - Strip leading/trailing spaces and skip blank targets
-	$target =~ s/^\s+|\s+$//g;
-	next if( $target eq "" );
+	foreach $target( @{$targethash{$ttype}} )
+	{
+		# 2011SEP26 - DSL - Strip leading/trailing spaces and skip blank targets
+		$target =~ s/^\s+|\s+$//g;
+		next if( $target eq "" );
 	
-	$$p_hash{$l_target_key} = $target;
-	$ttype = $target_types[$i] || $def_ttype;
-	$i++;
-	$$p_hash{T_TARGETTYPE} = $ttype;
+		$$p_hash{T_TARGET} = $target;
+		$$p_hash{T_TARGETTYPE} = $ttype;
 
-	# Check for duplicate.  Returns MID if dup found
-	$mid = $Q_DupMIDKeyHash{$ttype . $target . $chkdup_string};
-#	$mid = &ChkDupMIDKeyRec( \%$p_hash );
-	if	($mid)
-#	if( $mid ne "0" )
-	{
-		&LogMsg( "Duplicate $Q_TransHash{$mid} msg recd for $Q_TargetHash{$mid}.  Same as $Q_Key=$mid\n" );
-		# Update all keyword settings
-		$status = &UpdateMRec( $mid, $p_hash );
-		$status =~ s/\s+$//;
-		$buf = ($status ||
-			"$SUCCESS_MSG: Duplicate of $Q_Key=$mid.  Record updated") . "\n";
-		push( @G_ReturnArray, $buf );
-#		return ($buf)	if	($status ne "");
-	}
-	else
-	{
-		($err, $msg) = &M_AddMRec( $p_hash );
-		$buf = $err ? "$FAILURE_MSG: $msg" : "$SUCCESS_MSG: $msg";
-		push( @G_ReturnArray, $buf );
-		$mid = $err ? 0 : $$p_hash{T_MID};
-	}
+		# Check for duplicate.  Returns MID if dup found
+		$mid = $Q_DupMIDKeyHash{$ttype . $target . $chkdup_string};
+		if	($mid)
+		{
+			&LogMsg( "Duplicate $Q_TransHash{$mid} msg recd for $Q_TargetHash{$mid}.  Same as $Q_Key=$mid\n" );
+			# Update all keyword settings
+			$status = &UpdateMRec( $mid, $p_hash );
+			$status =~ s/\s+$//;
+			$buf = ($status ||
+				"$SUCCESS_MSG: Duplicate of $Q_Key=$mid.  Record updated") . "\n";
+			push( @G_ReturnArray, $buf );
+		}
+		else
+		{
+			($err, $msg) = &M_AddMRec( $p_hash );
+			$buf = $err ? "$FAILURE_MSG: $msg" : "$SUCCESS_MSG: $msg";
+			push( @G_ReturnArray, $buf );
+			$mid = $err ? 0 : $$p_hash{T_MID};
+		}
 
-	if	($mid eq "0")
-	{
-		$target = "";
+		if	($mid eq "0")
+		{
+			$target = "";
+		}
+		else
+		{
+			$targets_added{$ttype}{$target} = 1;
+		}
+		$last_mid = $mid	if	($mid);
+		%$p_hash = %l_hash_copy;
 	}
-	else
-	{
-		$targets_added{$ttype}{$target} = 1;
-	}
-	$last_mid = $mid	if	($mid);
-	%$p_hash = %l_hash_copy;
 }
 
 if( $$p_hash{RECORD} || $$p_hash{T_RECORD} )
@@ -7181,7 +7173,7 @@ return if( $trans eq "" );
 $tgt_kw  = $Q_TargetDesc{keyword};
 $target  = $Q_TargetHash{$mid};
 $type_kw = $Q_TargetTypeDesc{keyword};
-$tgt_type = $Q_TargetTypeHash{$mid} || "\@$xc_DEFTARGETTYPE";
+$tgt_type = $Q_TargetTypeHash{$mid} || "$xc_DEFTARGETTYPE";
 $equser_kw = $Q_EQUserDesc{"keyword"};
 $equser  = $Q_EQUserHash{$mid} || "";
 $eqgroup = $Q_EQGroupHash{$mid} || "";
@@ -9301,14 +9293,15 @@ my( $reccnt, $buf, $did, $keyhashcnt );
 
 $reccnt = 0;
 $buf = "";
-$keyhashcnt = scalar %$p_keyhash;
+$keyhashcnt = scalar( keys %$p_keyhash );
 
-unless( $keyhashcnt ) {
+unless( $keyhashcnt ) 
+{
 	# Header goes first
 	push( @G_ReturnArray, "\n" );
 	push( @G_ReturnArray, "\t***  Dispatch Queue Records  ***\n" );
 	push( @G_ReturnArray, "\n" );
-	$buf = &DRecHeader();
+	$buf = &DRecHeader( );
 	push( @G_ReturnArray, $buf );
 }
 
@@ -9320,7 +9313,8 @@ foreach $did ( sort keys( %D_DIDHash ) )
 	$reccnt += 1;
 }
 
-unless( $keyhashcnt ) {
+unless( $keyhashcnt ) 
+{
 	push( @G_ReturnArray, "\n" );
 	push( @G_ReturnArray, ($reccnt == 0)? "No records in dispatch queue\n":
 		"$reccnt records in dispatch queue\n");
@@ -9851,8 +9845,13 @@ sub DRecHeader
 {
 my( $buf, $format );
 
-$format = "%-12s\t%-25s\t%-12s\t%-s\t%-s\n";
-$buf = sprintf( "$format", "DID", "Target", "TID", "PRIORITY", "ACTION" );
+$buf = "";
+if( $G_Config{RECDETAILS} == 0 ) 
+{
+	$format = "%-15s  %-25s  %-15s  %-5s  %-s\n";
+	$buf = sprintf( "$format", "DID", "Target", "TID", "PRI", "ACTION" );
+}
+
 return( $buf );
 
 }	# end of D Rec Header
@@ -9895,7 +9894,7 @@ elsif( $G_Config{RECDETAILS} == 0 )
 		$action .= "\:$label" if( $label ne "" );
 	}
 
-	$format = "%-12s\t%-25s\t%-12s\t%-5s\t%-s\n";
+	$format = "%-15s  %-25s  %-15s  %-5s  %-s\n";
 	$buf = sprintf( "$format", $did, $D_TargetHash{$did}, $tid,
 		$D_PriorityHash{$did}, $action );
 }
@@ -9923,7 +9922,7 @@ sub MRecHeader
 my( $buf ) = "";
 
 if( $G_Config{RECDETAILS} == 0 ) {
-	$buf = sprintf( "%-12s  %-10s  %-10s  %-12s  %-10s  %-30s\n",
+	$buf = sprintf( "%-15s  %-25s  %-25s  %-15s  %-10s  %-s\n",
 				"MID", "TRANS", "TARGET", "TID", "STATUS", "APPARGS" );
 }
 
@@ -9956,7 +9955,7 @@ if( defined($p_keyhash) ) {
 }
 
 elsif( $G_Config{RECDETAILS} == 0 ) {
-	$buf = sprintf( "%-12s  %-10s  %-10s  %-12s  %-10s  %-s", $mid,
+	$buf = sprintf( "%-15s  %-25s  %-25s  %-15s  %-10s  %-s", $mid,
 	$Q_TransHash{$mid}, $Q_TargetHash{$mid}, $Q_TIDHash{$mid},
 	$Q_MsgStatusHash{$mid}, $Q_AppArgsHash{$mid} );
 	if( length($Q_ProfileHash{$mid}) ) {
@@ -9993,7 +9992,7 @@ sub SRecHeader
 {
 my( $buf, $format );
 
-$format = "%-12s  %-20s  %-30s  %-s\n";
+$format = "%-15s  %-20s  %-30s  %-s\n";
 $buf = sprintf( "$format", "SID", "Trans", "Profile", "Scheduled Time" );
 return( $buf );
 
@@ -10012,7 +10011,7 @@ my( $sec, $min, $hr, $day, $mon, $yr );
 ($sec,$min,$hr,$day,$mon,$yr) = localtime( $S_UTSHash{$sid} );
 $datetime = sprintf( "%04d/%02d/%02d  %02d:%02d:%02d", $yr+1900,$mon+1,$day,$hr,$min,$sec );
 
-$format = "%-12s  %-20s  %-30s  %-s\n";
+$format = "%-15s  %-20s  %-30s  %-s\n";
 $buf = sprintf( "$format", $sid, $S_TransHash{$sid}, $S_ProfileHash{$sid}, $datetime );
 
 return( $buf );
@@ -10028,7 +10027,7 @@ sub TRecHeader
 my( $buf ) = "";
 
 if( $G_Config{RECDETAILS} == 0 ) {
-	$buf = sprintf( "%-12s  %-10s  %-10s  %-5s  %-8s  %-30s\n",
+	$buf = sprintf( "%-15s  %-25s  %-10s  %-5s  %-8s  %-s\n",
 	            "TID", "TRANS", "STATUS", "PID", "INVOKED", "APPARGS" );
 }
 
@@ -10048,7 +10047,7 @@ my( $sec, $min, $hrs, $timebuf );
 my( $p_desc, $p_hash, $kw, @a );
 
 if( defined($sum) && $sum == 1 ) {
-	$buf = sprintf( "%-12s  %-10s  %-10s\n", $tid,
+	$buf = sprintf( "%-15s  %-25s  %-10s\n", $tid,
       		  $T_TransHash{$tid}, $T_TranStatusHash{$tid} );
 }
 
@@ -10056,7 +10055,7 @@ elsif( $G_Config{RECDETAILS} == 0 ) {
 	(@a) = localtime( $T_InvokedTSHash{$tid} );
 	$timebuf = sprintf( "%02d:%02d:%02d", $a[2], $a[1], $a[0] );
 
-	$buf = sprintf( "%-12s  %-10s  %-10s  %-5s  %-8s  %-60s\n", $tid,
+	$buf = sprintf( "%-15s  %-25s  %-10s  %-5s  %-8s  %-s\n", $tid,
       		  $T_TransHash{$tid}, $T_TranStatusHash{$tid}, $T_PIDHash{$tid},
       		  $timebuf, $T_AppArgsHash{$tid} );
 }
