@@ -5229,7 +5229,8 @@ if( defined( $p_hash->{$l_targets_key} ) && $p_hash->{$l_targets_key} ne "" )
 }
 elsif( defined( $p_hash->{$l_target_key} ) && $p_hash->{$l_target_key} ne "" )
 {
-	$p_targethash->{$def_ttype} = $p_hash->{$l_target_key};
+#	$p_targethash->{$def_ttype} = $p_hash->{$l_target_key};
+	push( @{$p_targethash->{$def_ttype}}, $p_hash->{$l_target_key} );
 	delete $p_hash->{$l_target_key};
 }
 
@@ -5279,7 +5280,7 @@ sub M_Dispatch
 {
 my( $p_hash ) = @_;
 my( %d_hash, $exclude );
-my( %targethash, $ttype, $p_tararr, $target, $buf, $v, $i, $InQueue, $did );
+my( %targethash, $ttype, $target, $buf, $v, $i, $InQueue, $did );
 my( $program, $appargs, $l_ip, $prikey, $pri, $l_xip, $err, $msg );
 my( $bidkey, $bidval, $expire, $result, $ttype, $trans, $profile );
 
@@ -5324,7 +5325,6 @@ if( $$p_hash{RECORD} || $$p_hash{T_RECORD} )
 # Dispatch a list of targets one by one
 foreach $ttype( keys %targethash )
 {
-	$p_tararr = $targethash{$ttype};
 	foreach $target( @{$targethash{$ttype}} )
 	{
 		# Don't put on Dispatch Queue if no records in Message Queue
@@ -8717,9 +8717,7 @@ my( $sec, $min, $hr, $mday, $mon, $yr, $wday, $yday, $isdst, $date );
 my( $buf ) = "";
 my( $time, $prog, $err, $errmsg );
 
-
-( $sec, $min, $hr, $mday, $mon, $yr, $wday, $yday, $isdst ) =
-	localtime( time );
+( $sec, $min, $hr, $mday, $mon, $yr, $wday, $yday, $isdst ) = localtime( time );
 
 # check if new day since last message written
 if( $yday != $G_LastLogfileYDay )
@@ -8731,16 +8729,13 @@ if( $yday != $G_LastLogfileYDay )
 		print "$buf";
 	}
 
+	# Need to store G_LastLogfileYDay here, 
+	# otherwise DisplayParms (and others) will fall into an infinite loop
 	$G_LastLogfileYDay = $yday;
-	if((!defined ($p_exit))||($p_exit ne "2"))
-	{
-		&LogMsg( $buf, 2)       if      ($buf);
-	}
 
 	close( STDOUT );
 	$G_LogFile = ($G_Config{LOGFILEDIR} ||
-		(($OS eq $NT)? "C:/TEMP": "/tmp")) . "/$date.log";
-	warn ("Logging data to '$G_LogFile'\n")		if	($G_Debugging);
+		(($^O =~ /win/i)? "C:/TEMP": "/tmp")) . "/$date.log";
 
 	open( STDOUT, ">>$G_LogFile" ) || die "Error opening $G_LogFile: $!\n";
 	select( STDOUT ); $| = 1;
@@ -9954,10 +9949,13 @@ if( defined($p_keyhash) ) {
 	$buf .= "\n";
 }
 
-elsif( $G_Config{RECDETAILS} == 0 ) {
+elsif( $G_Config{RECDETAILS} == 0 ) 
+{
+	my $appargs = $Q_AppArgsHash{$mid};
+	$appargs =~ s/^\;+|\;+$//g;
 	$buf = sprintf( "%-15s  %-25s  %-25s  %-15s  %-10s  %-s", $mid,
 	$Q_TransHash{$mid}, $Q_TargetHash{$mid}, $Q_TIDHash{$mid},
-	$Q_MsgStatusHash{$mid}, $Q_AppArgsHash{$mid} );
+	$Q_MsgStatusHash{$mid}, $appargs );
 	if( length($Q_ProfileHash{$mid}) ) {
 		$buf .= ";T_PROFILE=$Q_ProfileHash{$mid}"; }
 	if( length($Q_TargetTypeHash{$mid}) ) {
