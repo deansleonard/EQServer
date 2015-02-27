@@ -1,4 +1,4 @@
-#!C:/dean/EQ-Working/EQServer/perl5/bin/perl
+#!C:/scratch/EQServer/perl5/bin/perl
 
 #
 #	EQ Trans Wrapper.pl
@@ -57,7 +57,7 @@ if( $tfile && -f $tfile )
 }
 else
 {
-	split( /\s*,\s*/, $targets );
+	@x_targets = split( /\s*,\s*/, $targets );
 }
 
 # Build a command that is used to run the user script
@@ -115,7 +115,7 @@ foreach $target( @x_targets )
 	$msg = $msg_hash{$target};
 	
 	# Send status for this target
-	$Error = &EQSockRequest( $S, "T_MSG=STATUS;T_TID=$tid;T_RESULT=$err;T_TARGET=$target;T_REASON=$msg" ); 
+	$Error = &EQSockRequest( $S, "T_MSG=STATUS;T_TID=$tid;T_RESULT=$err;T_TARGET=$target;T_REASON=\"$msg\"" ); 
 	$Error = &EQSockResponse( $S, \@Response );
 }
 
