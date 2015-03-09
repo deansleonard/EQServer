@@ -31,7 +31,7 @@ my $targets = $G_MsgHash{T_TARGETS};
 my $targettype = $G_MsgHash{T_TARGETTYPE};
 my $trans = $G_MsgHash{T_TRANS};
 my $exec = $G_MsgHash{T_EXEC};
-my $tfile = $G_MsgHash{T_TARGETFILE}; # This is set if command line too long for CLI and must be written to a fiel
+my $tfile = $G_MsgHash{T_TFILE}; # This is set if command line too long for CLI and must be written to a fiel
 
 if( !defined($tid) || !defined($trans) || !defined($exec) || (!defined($targets) && !defined($tfile)) ) 
 {
