@@ -1,4 +1,4 @@
-#!C:/dean/EQ-Working/EQServer/perl5/bin/perl
+#!C:/scratch/EQServer/perl5/bin/perl
 
 #
 #	Sleep.pl
@@ -30,7 +30,7 @@ my( $rc, $targets, $t, $tid, $sec, @arr );
 
 $tid = $G_MsgHash{T_TID};
 $targets = $G_MsgHash{T_TARGETS} || undef;
-$targetfile = $G_MsgHash{T_TARGETFILE} || undef;
+$targetfile = $G_MsgHash{T_TFILE} || undef;
 $sec = $G_MsgHash{SECONDS} || 30;
 $rc = 0;
 
