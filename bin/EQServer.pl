@@ -1748,7 +1748,7 @@ $T_Key = "T_TID";
 
 %T_TargetFileDesc =
 (
-	keyword 	=> "T_TARGETFILE",
+	keyword 	=> "T_TFILE",
 	reqkey	=> 0,		# 0=no, 1=yes
 	keytype    	=> "STRING",
 	hashptr 	=> \%T_TargetFileHash,
@@ -1862,7 +1862,7 @@ $T_Key = "T_TID";
 	"T_PROFILE"		=> \%T_ProfileDesc,
 	"T_RECDTS"		=> \%T_RecdTSDesc,
 	"T_TARGETS"		=> \%T_TargetsDesc,
-	"T_TARGETFILE"	=> \%T_TargetFileDesc,
+	"T_TFILE"		=> \%T_TargetFileDesc,
 	"T_TARGETTYPE"	=> \%T_TargetTypeDesc,
 	"T_TID"			=> \%T_TIDDesc,
 	"T_TIMEOUT"		=> \%T_TimeoutDesc,
@@ -2372,16 +2372,6 @@ $Q_Key = "T_MID";
 	defval	=> ""
 );
 
-%Q_TFileFlagDesc =
-(	keyword	=> "T_TFILEFLAG",
-	reqkey	=> 0,
-	keytype	=> "NUMBER",
-	hashptr	=> \%Q_TFileFlagHash,
-	statusexecvar	=> 0,
-	function => "",
-	defval	=> 0
-);
-
 %Q_UniqueValDesc =
 (
 	keyword 	=> "T_UNIQUEVAL",
@@ -2445,10 +2435,9 @@ $Q_Key = "T_MID";
 	"T_TIMELIMIT"	=> \%Q_TimeLimitDesc,
 	"T_TIMEOUT"		=> \%Q_TimeoutDesc,
 	"T_TIMEOUTEXEC"	=> \%Q_TimeoutExecDesc,
-	"T_TFILEFLAG"	=> \%Q_TFileFlagDesc,
 	"T_TRANS"		=> \%Q_TransDesc,
 	"T_UNIQUEVAL"	=> \%Q_UniqueValDesc,
-	"T_USEEQTRANSWRAPPER" => \%Q_UseEQTransWrapperDesc
+	"T_USEEQTRANSWRAPPER" => \%Q_UseEQTransWrapperDesc,
 );
 
 
@@ -3189,7 +3178,7 @@ foreach $k( @arr ) {
 return( 0, "" ) if( $buf eq "" );
 
 $buf =~ s/, $//;	# Remove last ", "
-return( 1, "VerifyReqKeys: Required keyword(s) ($buf) missing from message\n" );
+return( 1, "VerifyReqKeys: Required keyword(s) ($buf) missing from message.\n" );
 
 }	# end of Verify Req Keys
 
@@ -3256,11 +3245,19 @@ if( $src_ip ne $xc_IP && $allowremote == 0 )
 	return 1;
 }
 
+# DSL - 20150305 - See if user wants help on this message
+if( defined( $hash{T_HELP} ) && $hash{T_HELP} )
+{
+	$buf = defined($M_MsgDesc{$msgtype}{msghelp}) ? $M_MsgDesc{$msgtype}{msghelp} : "No Help for '$msgtype'";
+	push( @G_ReturnArray, $buf );
+	return( 1 );
+}
+
 # Verify required keys provided
 ($err, $msg) = &VerifyReqKeys( \%hash, $M_MsgDesc{$msgtype}{reqkeys} );
 if( $err ) 
 {
-	push( @G_ReturnArray, "$FAILURE_MSG: ProcessMsg:$msg" );
+	push( @G_ReturnArray, "$FAILURE_MSG: ProcessMsg:$msg", "Try 'T_MSG=$msgtype;T_HELP=1' for more info on '$msgtype'" );
 	return( $err );
 }
 
@@ -3735,7 +3732,7 @@ foreach $s (@a)
 sub ParseEQMsg
 {
 my( $file ) = @_;
-my( @data, $p_hash, $s, $msg, $k, $v );
+my( @data, $p_hash, $s, $msg, $key, $v );
 
 # Just return if file doesn't exist
 return( 0, "" ) unless( -f "$file" );
@@ -3747,8 +3744,8 @@ close( FH );
 $p_hash = undef;
 foreach $s( @data )
 {
-	# trim leading/trailing spaces, and skip blank lines and comments
-	$s =~ s/^\s+|\s+$//g; 
+	# trim trailing spaces, and skip blank lines and comments
+	$s =~ s/\s+$//g; 
 	next if( $s =~ /^\#/ || $s eq "" );
 	
 	# see if we found a [section] line
@@ -3762,14 +3759,22 @@ foreach $s( @data )
 	# nothing to do if we don't have a valid message type
 	next unless( defined($p_hash) );
 	
-	# skip lines that don't look like 'key = value'
-	next unless( $s =~ /^([^=]+)=(.*)$/ );
-	
-	$k = $1;
-	$v = $2;
-	$k =~ s/\s+$//;
-	$v =~ s/^\s+//;
-	$p_hash->{$k} = $v;
+	# process lines that look like 'key = value'
+	if( $s =~ /^([\S]+)\s*=(.*)$/ )
+	{
+		$key = $1;
+		$v = $2;
+		$key =~ s/\s+$//;
+		$v =~ s/^\s+//;
+		$v =~ s/\\+$//g;	# remove any trailing backslashes, which are used to continue a value
+		$p_hash->{$key} = $v;
+	}
+	else
+	{
+		$v = $s;
+		$v =~ s/\\+$//g;	# remove any trailing backslashes, which are used to continue a value
+		$p_hash->{$key} .= "\n" . $v;
+	}
 }
 
 #use Data::Dumper;
@@ -5188,7 +5193,7 @@ foreach $mid( @mid_arr )
 	{
 		$d_hash{$key}{T_TRANS}   	= $trans;
 		$d_hash{$key}{T_PROFILE} 	= $profile;
-		$d_hash{$key}{T_TARGETTYPE}	= "\@$ttype";
+		$d_hash{$key}{T_TARGETTYPE}	= $ttype;
 		$d_hash{$key}{T_TARGETS} 	= $target;
 		$d_hash{$key}{T_EQUSER}  	= $equser;
 		$d_hash{$key}{T_EQGROUP}  	= $eqgroup;
@@ -5212,40 +5217,39 @@ sub GetMsgTargets
 {
 my( $p_hash, $p_targethash ) = @_;
 
-my $l_ttype_key = $Q_TargetTypeDesc{"keyword"};
-my $l_target_key = $Q_TargetDesc{"keyword"};
-my $l_targets_key = $l_target_key . "S";
-my $l_tfile_key = "T_TFILE";
+my $ttype_key = $Q_TargetTypeDesc{"keyword"};
+my $target_key = $Q_TargetDesc{"keyword"};
+my $targets_key = $l_target_key . "S";
+my $tfile_key = "T_TFILE";
 
-my $def_ttype = $$p_hash{$l_ttype_key} || "$xc_DEFTARGETTYPE" || "Device";
+my $def_ttype = $$p_hash{$ttype_key} || "$xc_DEFTARGETTYPE" || "Device";
 
-return( 1, "Add message must have $l_target_key, $l_targets_key or $l_tfile_key keywords" )
-	unless( $p_hash->{$l_target_key} || $p_hash->{$l_targets_key} || $p_hash->{$l_tfile_key} );
+return( 1, "Add message must have $target_key, $targets_key or $tfile_key keywords" )
+	unless( defined($p_hash->{$target_key}) || defined($p_hash->{$targets_key}) || defined($p_hash->{$tfile_key}) );
 
-if( defined( $p_hash->{$l_targets_key} ) && $p_hash->{$l_targets_key} ne "" )
+if( defined( $p_hash->{$targets_key} ) && $p_hash->{$targets_key} ne "" )
 {
-	@{$p_targethash->{$def_ttype}} = split (/\s*,\s*/, $p_hash->{$l_targets_key});
-	delete $p_hash->{$l_targets_key};
+	@{$p_targethash->{$def_ttype}} = split (/\s*,\s*/, $p_hash->{$targets_key});
+	delete $p_hash->{$targets_key};
 }
-elsif( defined( $p_hash->{$l_target_key} ) && $p_hash->{$l_target_key} ne "" )
+elsif( defined( $p_hash->{$target_key} ) && $p_hash->{$target_key} ne "" )
 {
-#	$p_targethash->{$def_ttype} = $p_hash->{$l_target_key};
-	push( @{$p_targethash->{$def_ttype}}, $p_hash->{$l_target_key} );
-	delete $p_hash->{$l_target_key};
+	push( @{$p_targethash->{$def_ttype}}, $p_hash->{$target_key} );
+	delete $p_hash->{$target_key};
 }
 
-if( defined( $p_hash->{$l_tfile_key} ) && $p_hash->{$l_tfile_key} ne "" && -f $p_hash->{$l_tfile_key} )
+if( defined( $p_hash->{$tfile_key} ) && $p_hash->{$tfile_key} ne "" )
 {
 	# Get name of the file containing a list of targets
-	my $file = $p_hash->{$l_tfile_key};
+	my $file = $p_hash->{$tfile_key};
 	$file =~ s#\\#/#g;
 	# Open the list
-	return( 1, "Cannot open target file '$file': $!" ) unless( open( TARGETS_FILE, $file ) );
+	return( 1, "Cannot open target file '$file': $!" ) unless( open( TFILE, "$file" ) );
 
 	# Read data from the file line by line
-	my @a = <TARGETS_FILE>;
-	close (TARGETS_FILE);
-	delete $$p_hash{T_TFILE};
+	my @a = <TFILE>;
+	close (TFILE);
+	delete $$p_hash{$tfile_key};
 	foreach my $s( @a )
 	{
 		# Skip empty lines and comments
@@ -5268,7 +5272,9 @@ if( defined( $p_hash->{$l_tfile_key} ) && $p_hash->{$l_tfile_key} ne "" && -f $p
 	}
 }
 
-return( 0, "" );
+my $msg = scalar(keys %p_targethash) > 0 ? "" : "No targets found";
+my $err = $msg eq "" ? 0 : 1;
+return( $err, $msg );
 
 }	# end of Get Msg Targets
 
@@ -5540,7 +5546,7 @@ return( 1, "file not found - $exec_kw=$$p_hash{$exec_kw}" ) unless( -f $$p_hash{
 
 my( %targethash );
 ($err, $msg) = &GetMsgTargets( $p_hash, \%targethash );
-return( $err, $msg ) if( $err );
+push( @G_ReturnArray, "$FAILURE_MSG: $msg" ) if( $err );
 
 $$p_hash{T_SID} = "0";
 
@@ -6339,18 +6345,20 @@ return( $counter );
 sub M_DeleteMRec
 {
 my( $p_hash ) = @_;
-my( $mid, $user, $err, $msg, $i, $s, @arr );
+my( $mid, $user, $err, $msg, $i, $s, @arr, @err_array );
 
 $mid = $$p_hash{$Q_Key} || "";
 $user = defined($$p_hash{"T_EQUSER"}) ? $$p_hash{"T_EQUSER"} : "Unknown";
 #return( 1, "Message does not contain $Q_Key keyword" ) unless( defined($mid) );
 
+@err_array = ( );
 if( $mid ne "" )
 {
 	@arr = split (/\s*,\s*/, $mid);
 	foreach $mid( @arr )
 	{
-		&DelMRec( $mid, $user );
+		($err, $msg) = &DelMRec( $mid, $user );
+		push( @G_ReturnArray, $msg ) if( $err );
 	}
 }
 else
@@ -6358,11 +6366,15 @@ else
 	# Find all records that match all key/value pairs using M Filter M Recs routine
 	$p_hash->{T_VIEW} = "detail";
 	($err, $msg) = &M_FilterMRecs( $p_hash );
+	return( 1, "M_FilterMRecs: $msg" ) if( $err );
 	
 	# See if no records match criteria
 	$i = scalar( @G_ReturnArray ) - 1;
 	$msg = $G_ReturnArray[$1];
-	return( 0, "" ) if( $msg =~ /No records match/i );
+	if( $msg =~ /No records match/i )
+	{
+		return( 0, "" );
+	}
 	
 	# Must have match(es) so make a copy and start with a clean slate
 	push( @arr, @G_ReturnArray );
@@ -6371,11 +6383,14 @@ else
 	{
 		next unless( $msg =~ /T_MID=(\d+)/i );
 		$mid = $1;
-		&DelMRec( $mid, $user );
+		($err, $msg) = &DelMRec( $mid, $user );
+		push( @G_ReturnArray, $msg ) if( $err );
 	}
 }
 
-return( 0, "" );
+
+$err = scalar( @G_ReturnArray ) > 0 ? 1 : 0;
+return( $err, "" );
 
 }	# end of M Delete MRec
 
@@ -6388,6 +6403,7 @@ sub DelMRec
 my( $mid, $user ) = @_;
 my( $err, $msg, @arr, %hash, $reason );
 
+return( 1, "MID '$mid' does not exist" ) unless( defined( $Q_MIDHash{$mid} ) );
 $reason = "Deleted by '$user' PREVIOUS REASON: ";
 $reason .= $Q_ReasonHash{$mid};
 $reason = $1 if( $reason =~ /^(.+?PREVIOUS REASON:.+?)PREVIOUS REASON:/i );
@@ -6398,6 +6414,7 @@ $hash{T_TARGET} = $Q_TargetHash{$mid};
 $hash{T_RESULT} = "D";
 $hash{T_REASON} = $reason;
 ($err, $msg) = &M_Status( \%hash );
+return( $err, $msg );
 
 }	# end of Del M Rec
 
@@ -8267,6 +8284,9 @@ foreach $pri( @p )
 		}
 
 		# Skip/return (but don't delete) if uniqueness prohibits execution.
+		# UNIQUEVAL, derived from UNIQUEKEY values, is a means restrict transaction startup.
+		# If there's already a running transaction with the same UNIQUEKEY value as this queued 
+		# transaction, then this queued transaction will not be initiated.
 		$contention = &CheckUniqueVal( $Q_UniqueValHash{$mid} );
 		if( $contention ) 
 		{
@@ -8852,7 +8872,8 @@ if	($view ne "")
 }
 
 %crithash = ( );
-while( ($key, $val) = each( %$p_hash ) ) { 
+while( ($key, $val) = each( %$p_hash ) ) 
+{ 
 	$key =~ s/^\s+|\s+$//g;
 	$key =~ tr/[a-z]/[A-Z]/;
 	$val =~ s/^\s+|\s+$//g;
@@ -8956,39 +8977,40 @@ my( $key, $val, $id, $buf, $p_keyhash, $reccnt, $hashkey, $hashval, $match );
 my( $critstr ) = "";
 
 $reccnt = 0;
-foreach $key ( keys %$p_crithash ) {
-	# make sure the keyword is valid
-	if( !defined( $$p_keydesc{$key} ) ) {
-		push( @G_ReturnArray, "Invalid keyword ($key) passed to FilterXRecs\n" );
-		delete( $$p_crithash{$key} );
-	}
-	$critstr .= "$key=$$p_crithash{$key}  ";
+foreach $key ( keys %$p_crithash ) 
+{
+	$critstr .= "$key='$$p_crithash{$key}'; ";
 	$reccnt += 1;
 }
-
-unless( $reccnt ) {
+unless( $reccnt ) 
+{
 	push( @G_ReturnArray, "No valid keywords passed to FilterXRecs\n" );
 	return;
 }
+
+$critstr =~ s/\;\s+$//;
 
 # initialize a counter
 $reccnt = 0;
 foreach $id ( sort keys %$p_masterhash ) {
 
 	$match = 1;
-	foreach $key ( keys %$p_crithash ) {
+	foreach $key ( keys %$p_crithash ) 
+	{
 		$val = $$p_crithash{$key};
 		$p_keyhash = $$p_keydesc{$key}{hashptr};
 		if	($val =~ /\|/)
 		{
-			unless( $$p_keyhash{$id} =~ /$val/ ) {
+			unless( $$p_keyhash{$id} =~ /$val/ ) 
+			{
 				$match = 0;
 				last;
 			}
 		}
 		else
 		{
-			unless( $$p_keyhash{$id} eq "$val" ) {
+			unless( $$p_keyhash{$id} eq "$val" ) 
+			{
 				$match = 0;
 				last;
 			}
@@ -8998,9 +9020,11 @@ foreach $id ( sort keys %$p_masterhash ) {
 	next unless( $match );
 
 	# found a match.  If not summary...
-	if( $G_Config{RECDETAILS} != 2 ) {
+	if( $G_Config{RECDETAILS} != 2 ) 
+	{
 		# If not first record, display header
-		if( $reccnt == 0 ) {
+		if( $reccnt == 0 ) 
+		{
 			$buf = &$p_headsub();
 			push( @G_ReturnArray, $buf );
 		}
@@ -9010,10 +9034,14 @@ foreach $id ( sort keys %$p_masterhash ) {
 	$reccnt += 1;
 }
 
-if( $reccnt == 0 ) {
-	push( @G_ReturnArray, "No records match $critstr\n" ); }
-else {
-	push( @G_ReturnArray, "$reccnt records match $critstr\n" ); }
+if( $reccnt == 0 ) 
+{
+	push( @G_ReturnArray, "No records match \"$critstr\"\n" ); 
+}
+else 
+{
+	push( @G_ReturnArray, "$reccnt records match $critstr\n" ); 
+}
 
 }	# end of Filter X Q Recs
 
