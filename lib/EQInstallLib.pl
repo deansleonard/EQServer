@@ -1,4 +1,4 @@
-#!C:/dean/EQ-Working/EQServer/perl5/bin/perl
+#!C:/scratch/EQServer/perl5/bin/perl
 #
 # Function used by EQ installation and upgrade scripts.
 # $xc_* variables should be set prior to calling these functions.
@@ -2627,7 +2627,7 @@ return( 0, "" );
 #-----------------------------------------
 sub Install_MkDir
 {
-my( $dir ) = @_;
+my( $dir, $skip_update ) = @_;
 my( $err, $msg );
 
 if( !-d $dir )
@@ -2635,7 +2635,16 @@ if( !-d $dir )
 	eval { mkpath ($dir) };
 	$msg = $@;
 	$err = length( $msg ) > 0 ? 1 : 0;
-	return( $err, $msg );
+	return( $err, $msg ) if( $err );
+}
+
+return( 0, "" ) unless( $skip_update );
+
+$file = "$dir/.skip_update";
+if	(open (SKIP_FILE, ">$file"))
+{
+	print SKIP_FILE "\n";
+	close (SKIP_FILE);
 }
 
 return( 0, "" );

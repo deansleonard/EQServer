@@ -1,4 +1,4 @@
-#!C:/dean/EQ-Working/EQServer/perl5/bin/perl
+#!C:/scratch/EQServer/perl5/bin/perl
 
 #
 # Installation Script
@@ -442,10 +442,11 @@ foreach my $file( @files )
 sub MakeEQDirs
 {
 my @dirs = ( "logs", "temp", "qstore", "qstore/status" );
+my $skip_update = 1;
 
 foreach my $dir( @dirs )
 {
-	&Install_MkDir( $dir );
+	&Install_MkDir( $dir, $skip_update );
 }
 
 }	# end of Make EQ Dirs
