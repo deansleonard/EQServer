@@ -18,7 +18,12 @@ Technical details about the eQ Server are documented in the [eQ Technical Refere
 
 ## Installation Process
 
-EQServer can be installed from sources with only Perl 5 as a prerequisite (versions available on our website).  If you wish to use your own installation of perl, make sure it has DBI and DBD::SQLite module installed.
+EQServer can be installed from sources with only Perl 5 as a prerequisite (versions available on our website).  If you wish to use your own installation of perl, make sure it has DBI and DBD::SQLite module installed.  Here are videos to walk you through the installation process:
+
+1.  [Install eQ on Windows] (http://www.eqserver.org/how-to/WindowsInstall.wmv)
+1.	[Install eQ on *NIX-based System] (http://www.eqserver.org/how-to/NIXInstall.wmv) 
+
+Or, if you prefer written instructions:
 
 1. Download ZIP and extract or 'git clone git://github.com/deansleonard/EQServer'
 1. Change into the **EQServer** subdirectory.
