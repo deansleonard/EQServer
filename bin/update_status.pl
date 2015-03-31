@@ -1,4 +1,4 @@
-#!C:/dean/EQ-Working/EQServer/perl5/bin/perl
+#!c:/scratch/EQServer/perl5/bin/perl
 #
 # update_status.pl
 #
@@ -39,9 +39,10 @@ eval "$s";
 exit( 0 ) if( $xc_DB_VENDOR eq "NONE" );
 
 require ("$xc_EQ_PATH/lib/eqclientlib.pl");
-require ("$xc_EQ_PATH/lib/www_gui.pl");
-require ("$xc_EQ_PATH/lib/EQAction.pl");
-require "$xc_EQ_PATH/lib/EQTTypes.pl";
+require ("$xc_EQ_PATH/lib/SQL.pl");
+#require ("$xc_EQ_PATH/lib/www_gui.pl");
+#require ("$xc_EQ_PATH/lib/EQAction.pl");
+#require "$xc_EQ_PATH/lib/EQTTypes.pl";
 
 # Location of log file
 $x_logfile = $xc_EQ_PATH . "/logs/update_status.log";
@@ -63,7 +64,7 @@ $x_action_id = 0;
 @x_updated = ();
 
 
-&EQ_UpdateEnv ();
+#&EQ_UpdateEnv ();
 # Check if lock file exist
 $x_lock = "$xc_EQ_PATH/temp/update_status.lock";
 if	(-f $x_lock)
@@ -90,22 +91,22 @@ close (LOCK_FILE);
 
 # Populate ConvertTypeCode and ValidTargetTypes hashes.
 # Get a list of available types
-my	$types = &GetAllTargetTypes ('TYPE_DEVICE', 'TYPE_AGENT');
+#my	$types = &GetAllTargetTypes ('TYPE_DEVICE', 'TYPE_AGENT');
 
-&LogError (1, $types)	if	(!ref ($types));
+#&LogError (1, $types)	if	(!ref ($types));
 # Populate the hashes
-foreach (@$types)
-{
-	$s = $_->type;
-	$ConvertTypeCode{$_->type_abbrev} = $s;
-	$ValidTargetTypes{$s} = 1;
-}
+#foreach (@$types)
+#{
+#	$s = $_->type;
+#	$ConvertTypeCode{$_->type_abbrev} = $s;
+#	$ValidTargetTypes{$s} = 1;
+#}
 
 # Tell EQ Server to close the status file and open a new one.
 # We don't care if this operation fails - we'll just process what status
 # files are there.
 ($err, $msg) = &SendEQMsg( \"T_MSG=NEWSTATUSFILE" );
-&LogError( 0, "EQServer connection attempt failed: $msg " ) if( $err );
+&LogError( 0, "Error sending 'T_MSG=NEWSTATUSFILE' to EQServer: $msg " ) if( $err );
 
 # Get a list of all currently defined Nodes and Actions in RDBMS
 ($err, $msg) = &EQ_GetDBIdHashes (\%x_nodes, \%x_actions);
@@ -163,7 +164,8 @@ closedir (LOG_DIR);
 
 @x_updated = ( 0, 0 );
 # For each status file in the directory
-foreach $x_file (sort @x_files) {
+foreach $x_file (sort @x_files) 
+{
 	# Open log file
 	unless( open (STATUS_FILE, $x_file) ) 
 	{
@@ -368,24 +370,28 @@ sub	ProcessStatusRecord
 	}
 
 	# Make sure that data is valid
-	if( $$p_data{TIME} !~ /^\d+$/) {
+	if( $$p_data{TIME} !~ /^\d+$/) 
+	{
 		&LogError (0, "Error in '$p_file': found invalid value '$$p_data{TIME}' for TIME");
 		return 1;
 	}
 	
-	if( $$p_data{QTIME} !~ /^\d+$/) {
+	if( $$p_data{QTIME} !~ /^\d+$/) 
+	{
 		&LogError (0, "Error in '$p_file': found invalid value '$$p_data{QTIME}' for QTIME");
 		return 1;
 	}
 
-	if( $$p_data{RESULT} !~ /^(\d*|D|X)$/i) {
+	if( $$p_data{RESULT} !~ /^(\d*|D|X)$/i) 
+	{
 		&LogError (0, "Error in '$p_file': found invalid value '$$p_data{RESULT}' for RESULT");
 		return 1;
 	}
 
 	# TARGET should be provided
 	$target = $$p_data{TARGET};
-	if( $target eq "") {
+	if( $target eq "") 
+	{
 		&LogError (0, "Error in '$p_file': found invalid value '$$p_data{TARGET}' for TARGET");
 		return 1;
 	}
@@ -393,11 +399,11 @@ sub	ProcessStatusRecord
 	# Check target type
 	$target_type = $$p_data{TARGET_TYPE};
 	$target_type =~ s/^\@//;
-	if	(!$ValidTargetTypes{$target_type}) 
-	{
-		&LogError (0, "Error in '$p_file': unsupported target type '$target_type'");
-		return 1;
-	}
+#	if	(!$ValidTargetTypes{$target_type}) 
+#	{
+#		&LogError (0, "Error in '$p_file': unsupported target type '$target_type'");
+#		return 1;
+#	}
 
 	# Generate action name
 	$action = $$p_data{NAME};
@@ -484,6 +490,7 @@ sub	ProcessParametersRecord
 	$err = &UpdateActParms ($action_id, $job_id, $$p_data{PARAMETERS});
 	return ($err)? 1: 0;
 }
+
 
 #-----------------------------------------------
 #	Verify Act
@@ -597,14 +604,14 @@ sub AddNewNode
 my( $type, $node ) = @_;
 my( $cmd, $err, $s, $computer, $code, $k, $v, $ts, $l_result );
 
-$code = "U";
-foreach $k( %ConvertTypeCode )
-{
-	$code = $k
-		if ((defined ($ConvertTypeCode{$k}))&&($ConvertTypeCode{$k} eq $type));
-}
+#$code = "U";
+#foreach $k( %ConvertTypeCode )
+#{
+#	$code = $k
+#		if ((defined ($ConvertTypeCode{$k}))&&($ConvertTypeCode{$k} eq $type));
+#}
 
-if( $type eq "C" ) { $computer = $node; }
+if( $type =~ /Computer/i ) { $computer = $node; }
 else { $computer = "*"; }
 #else { $computer = &EQ_GetComputerName( $type, $node ); }
 
@@ -617,7 +624,7 @@ $ts = time( );
 $x_node_id++;
 # Insert new record into the EQ_NODES table
 $cmd = "INSERT INTO EQ_NODES (NODE_NAME, NODE_TYPE, REGION, COMPUTER_NAME, NODE_ID, STATUS, MAC, CREATED_TS)\n" .
-"VALUES ('$node', '$code', $xc_REGION, '$computer', $x_node_id, 'A', '', $ts)";
+"VALUES ('$node', '$type', '', '$computer', $x_node_id, 'A', '', $ts)";
 ($err, $s) = &EQ_ExeSQLCmd ($cmd, \$l_result);
 if	($err != 0)
 {
@@ -930,3 +937,53 @@ sub	ProcessCustomRecord
 
 	return 0;
 }
+
+
+#----------------------------------------------
+#	EQ Get DB Id Hashes
+#----------------------------------------------
+sub EQ_GetDBIdHashes
+{
+my( $p_nodeids, $p_actids ) = @_;
+my( $command, @output, $err, $msg, $s, $type, $typecode, $name, $region, $id );
+
+#my	%type = ();
+
+# Get a list of available types
+#my	$types = &GetAllTargetTypes ('TYPE_DEVICE', 'TYPE_AGENT');
+#return (1, $types)	if	(!ref ($types));
+# Populate the %type hash
+#foreach (@$types)
+#{
+#	$type{$_->type_abbrev} = $_->type;
+#}
+
+$command = "SELECT NODE_TYPE,NODE_NAME,REGION,NODE_ID FROM EQ_NODES";
+#$command .= " WHERE REGION = $xc_REGION"	if	($xc_REGION != 0);
+@output = ();
+($err, $msg ) = &EQ_ExeSQLCmd ($command, \@output);
+return( $err, $msg ) if( $err );
+
+foreach $s (@output)
+{
+#	($typecode, $name, $region, $id) = @{$s};
+	($type, $name, $region, $id) = @{$s};
+#	$name = "$type{$typecode}:$name:$region";
+	$name = "$type:$name:$region";
+	$$p_nodeids{$name} = $id;
+}
+
+$command = "select action_name,action_id from eq_actions";
+@output = ();
+($err, $msg) = &EQ_ExeSQLCmd ($command, \@output);
+return( $err, $msg ) if( $err );
+
+foreach $s (@output)
+{
+	($name, $id) = @{$s};
+	$$p_actids{$name} = $id;
+}
+
+return( 0, "" );
+
+}	# end of EQ Get DB Id Hashes
