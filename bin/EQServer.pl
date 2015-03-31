@@ -1,4 +1,4 @@
-#!C:/scratch/EQServer/perl5/bin/perl
+#!c:/scratch/EQServer/perl5/bin/perl
 
 #
 #	EQServer.pl - server process to queue transactions
@@ -28,18 +28,15 @@ use IO::Select;
 use IO::Socket;
 use Getopt::Std;
 
-# Get EQ configuration data
-$s = $ENV{EQHOME} . "/cfg/setup_env.pl";
-open (IN_FILE, "$s") || &LogMsg( "Cannot open file '$s': $!\n", 1);
-$s = join ("", <IN_FILE>);
-close (IN_FILE);
-eval "$s";
-
 if( $^O =~ /win/i )
 {
 	require "Win32.pm";
 	require	"Win32/Process.pm";
 }
+
+#
+#	Globals Variables
+#
 
 $x_no_cleanup = 0;
 
@@ -88,12 +85,6 @@ $TIMEOUT	= "TIMEOUT";	# trans timed out, waiting for t_msg=finished
 $OS		= "$^O";	# "MSWin32" if NT
 $NT		= "MSWin32";
 
-# Default configuration file
-$DEF_CFG		= "$xc_EQ_PATH/cfg/eqserver.cfg";
-
-#
-#	Globals Variables
-#
 $G_Now = 0;		# Holds UTS after message read from socket or socket timer expires
 @G_mons = ( "JAN", "FEB", "MAR", "APR", "MAY", "JUN",
             "JUL", "AUG", "SEP", "OCT", "NOV", "DEC" );
@@ -175,10 +166,42 @@ $G_ServerSocketAlt = 0;
 $G_Select = 0;
 $G_EQSchedSocket = 0;
 
+use Cwd;
+	
+$ENV{EQHOME} = getcwd( );
+$ENV{EQHOME} =~ s#\\#/#g;
+$ENV{EQHOME} =~ s#/bin##;
+
+# Get EQ configuration data
+if( -f "$ENV{EQHOME}/cfg/setup_env.pl" )
+{
+	$s = "$ENV{EQHOME}/cfg/setup_env.pl";
+}
+elsif( -f "/etc/EQ/setup_env.pl" )
+{
+	$s = "/etc/EQ/setup_env.pl";
+}
+elsif( -f "$ENV{WINDIR}/system32/drivers/etc/EQ/setup_env.pl" )
+{
+	$s = "$ENV{WINDIR}/system32/drivers/etc/EQ/setup_env.pl";
+}
+else
+{
+	print "Error finding 'setup_env.pl'.  Aborting\n";
+	exit( 5 );
+}
+
+open (IN_FILE, "$s") || &LogMsg( "Cannot open file '$s': $!\n", 1);
+$s = join ("", <IN_FILE>);
+close (IN_FILE);
+eval "$s";
 
 #
 #	*** CONFIG RELATED THINGS ***
 #
+
+# Default configuration file
+$DEF_CFG		= "$ENV{EQHOME}/cfg/eqserver.cfg";
 
 %G_ConfigMod = ();
 
@@ -193,6 +216,7 @@ $G_EQSchedSocket = 0;
 	DISPATCHVARCFG	=> "$xc_EQ_PATH/cfg/DispatchVar.cfg",
 	DUPAPPARGSEXCL	=> "",
 	ENVFILE			=> "$xc_EQ_PATH/cfg/env.cfg",
+	EQHOME			=> $ENV{EQHOME},
 	EQSCHEDPORT		=> 0,
 	EQPRODUCT		=> $G_Product,
 	EQVERSION		=> $G_Version,
@@ -1067,6 +1091,16 @@ $M_Key = "T_MSG";
 	reqkeys		=> "",
 );
 
+%M_ShowEnvDesc =
+(
+	help		=> "Return environment variables",
+	example		=> "t_msg=showenv",
+	allowremote	=> 0,
+	checkq		=> 0,
+	func		=> \&M_ShowEnv,
+	reqkeys		=> "",
+);
+
 %M_StartedDesc =
 (
 	help		=> "For clients to return status of transaction startup",
@@ -1207,6 +1241,7 @@ $M_Key = "T_MSG";
 	"SETTID"		=> \%M_SetTIDDesc,
 	"SETPARMS"		=> \%M_SetParmsDesc,
 	"SHOWCLIENTS"	=> \%M_ShowClientsDesc,
+	"SHOWENV"		=> \%M_ShowEnvDesc,
 	"SHOWPARMS"		=> \%M_ShowParmsDesc,
 	"SHOWTRANS"		=> \%M_ShowTransDesc,
 	"SHOWCLASSES"	=> \%M_ShowClassesDesc,
@@ -5272,7 +5307,7 @@ if( defined( $p_hash->{$tfile_key} ) && $p_hash->{$tfile_key} ne "" )
 	}
 }
 
-my $msg = scalar(keys %p_targethash) > 0 ? "" : "No targets found";
+my $msg = scalar(keys %{$p_targethash}) > 0 ? "" : "No targets found";
 my $err = $msg eq "" ? 0 : 1;
 return( $err, $msg );
 
@@ -6871,6 +6906,25 @@ my( $buf, $key );
 
 foreach $key ( sort keys( %G_Config ) ) {
 	$buf = "$key = $G_Config{$key}\n";
+	push( @G_ReturnArray, $buf );
+}
+
+return( 0, "" );
+
+}	# end of M Show Parms
+
+
+#-------------------------------------------------------#
+# 	M Show Env
+#-------------------------------------------------------#
+sub M_ShowEnv
+{
+my( $p_hash ) = @_;
+my( $buf, $key );
+
+foreach $key ( sort keys( %ENV ) ) 
+{
+	$buf = "$key = $ENV{$key}\n";
 	push( @G_ReturnArray, $buf );
 }
 
