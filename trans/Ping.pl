@@ -1,4 +1,4 @@
-#!C:/dean/EQ-Working/EQServer/perl5/bin/perl
+#!c:/scratch/EQServer/perl5/bin/perl
 #
 #	$Id$
 #
@@ -11,11 +11,11 @@
 # Application keywords case sensitive.
 #
 
-my $host = defined( $ENV{EQ_device} ) ? $ENV{EQ_device} : "yahoo.com";
+my $host = $ENV{EQ_T_TARGET};
 my( $err, $msg ) = &Ping( $host );
 $err = $err ? 1 : 0;
 $msg =~ s/\n*$/\n/;
-print $msg;
+print "PING RESULT: $msg";
 exit( $err );
 
 
